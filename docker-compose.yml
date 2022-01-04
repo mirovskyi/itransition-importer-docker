@@ -1,0 +1,46 @@
+---
+version: '3'
+
+networks:
+  importer-network:
+
+services:
+  importer_mysql:
+    container_name: importer_mysql
+    build: mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    tty: true
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - importer-network
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+
+  importer_php:
+    container_name: importer_php
+    build: php
+    tty: true
+    links:
+      - importer_mysql:importer_mysql
+    volumes:
+      - ${SOURCE_PATH}:/var/www/html
+      - ./logs:/var/log/php-fpm
+    networks:
+      - importer-network
+
+  importer_nginx:
+    container_name: importer_nginx
+    build: nginx
+    tty: true
+    ports:
+      - 80:80
+    links:
+      - importer_php:importer_php
+    volumes:
+      - ${SOURCE_PATH}:/var/www/html
+      - ./logs:/var/log/nginx
+    networks:
+      - importer-network
