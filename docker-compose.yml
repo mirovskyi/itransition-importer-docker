@@ -36,7 +36,7 @@ services:
     build: nginx
     tty: true
     ports:
-      - 80:80
+      - ${NGINX_HTTP_PORT}:80
     links:
       - importer_php:importer_php
     volumes:
